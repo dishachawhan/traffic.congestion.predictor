@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Traffic Congestion Predictor</title>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+</head>
+
+<body>
+
+<a href="/" class="home-btn">← Back to Home</a>
+
+<h1>Traffic Congestion Predictor</h1>
+
+<!-- ROW 1 -->
+
+<div class="row">
+
+<div class="card analysis">
+
+<h2>Enter Vehicle Data</h2>
+
+<form method="POST">
+
+<label>Bikes <span class="threshold">(0-100)</span></label>
+<input type="number" name="bikes" required>
+
+<label>Cars <span class="threshold">(0-80)</span></label>
+<input type="number" name="cars" required>
+
+<label>Buses <span class="threshold">(0-40)</span></label>
+<input type="number" name="buses" required>
+
+<label>Trucks <span class="threshold">(0-30)</span></label>
+<input type="number" name="trucks" required>
+
+<button type="submit">Predict Traffic</button>
+
+</form>
+
+</div>
+
+
+<div class="card">
+
+{% if result %}
+
+<div class="result">
+
+<h2>Traffic Analysis</h2>
+
+<p><b>Traffic Level:</b> {{ result.level }}</p>
+<p><b>Congestion Risk:</b> 
+<span class="badge {{ result.risk }}">{{ result.risk }}</span>
+</p><p><b>Total Vehicles:</b> {{ result.total }}</p>
+<p><b>Road Utilization:</b> {{ result.utilization }}%</p>
+<p><b>Congestion Score:</b> {{ result.score }} / 10</p>
+<div class="meter">
+<div class="meter-fill" style="width: {{ result.score*10 }}%"></div>
+</div>
+<p><b>Prediction Confidence:</b> {{ result.confidence }}%</p>
+
+<h3>Main Contributor</h3>
+<p>{{ result.contributor }}</p>
+
+<h3>Reasons</h3>
+<ul>
+{% for r in result.reasons %}
+<li>{{ r }}</li>
+{% endfor %}
+</ul>
+
+<h3>Suggested Action</h3>
+<p>{{ result.suggestion }}</p>
+
+</div>
+
+{% endif %}
+
+</div>
+
+</div>
+
+
+<!-- ROW 2 -->
+
+<div class="row">
+
+<div class="card">
+
+<h2>Your Traffic Input</h2>
+<canvas id="inputChart"></canvas>
+
+</div>
+
+<div class="card">
+
+<h2>Vehicle Contribution</h2>
+<canvas id="pieChart"></canvas>
+
+</div>
+
+</div>
+
+
+<!-- ROW 3 -->
+
+<div class="row">
+
+<div class="card full">
+
+<h2>Traffic Trend</h2>
+<canvas id="trendChart"></canvas>
+
+</div>
+
+</div>
+
+
+<script>
+
+const trendLabels = {{ times | tojson }};
+const trendValues = {{ values | tojson }};
+
+const userValues = {{ user_values | default([0,0,0,0]) | tojson }};
+
+
+// Traffic Trend Chart
+
+new Chart(document.getElementById("trendChart"),{
+
+type:"line",
+
+data:{
+labels:trendLabels,
+datasets:[{
+label:"Vehicle Flow",
+data:trendValues,
+borderWidth:3,
+fill:false
+}]
+}
+
+});
+
+
+// User Input Chart
+
+new Chart(document.getElementById("inputChart"),{
+
+type:"bar",
+
+data:{
+labels:["Bikes","Cars","Buses","Trucks"],
+datasets:[{
+label:"Entered Vehicles",
+data:userValues,
+borderWidth:1
+}]
+}
+
+});
+
+
+// Contribution Pie Chart
+
+new Chart(document.getElementById("pieChart"),{
+
+type:"pie",
+
+data:{
+labels:["Bikes","Cars","Buses","Trucks"],
+datasets:[{
+data:userValues
+}]
+}
+
+});
+
+</script>
+
+</body>
+</html>
